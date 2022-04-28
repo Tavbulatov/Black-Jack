@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Diller < Player
+class Dealer < Player
   attr_accessor :poits
 
   def initialize
@@ -17,6 +17,7 @@ class Diller < Player
   end
 
   def cards_hands
+    puts 'КАРТЫ ДИЛЛЕРА'
     puts '*' * @rand_cards.flatten.size
     puts "ОЧКИ: #{@poits}"
   end

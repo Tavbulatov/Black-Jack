@@ -1,6 +1,6 @@
-require_ralative 'controller'
-require_ralative 'player'
-require_ralative 'diller'
+require_relative 'controller'
+require_relative 'player'
+require_relative 'dealer'
 
 puts 'Введите имя'
 name = gets.strip.capitalize

@@ -12,9 +12,9 @@ class Player < Controller
 
   def random_cards(number = 2)
     if @rand_cards.size < 2
-    @rand_cards << CARDS.keys.sample(number)
-    @poits = 0
-    @rand_cards.flatten.each do |card|
+      @rand_cards << CARDS.keys.sample(number)
+      @poits = 0
+      @rand_cards.flatten.each do |card|
       @poits += CARDS[card]
     end
     else
@@ -23,6 +23,8 @@ class Player < Controller
   end
 
   def cards_hands
+    puts '=================='
+    puts 'КАРТЫ ИГРОКА'
     @rand_cards.flatten.each { |card| print card }
     puts
     puts "ОЧКИ: #{@poits}"

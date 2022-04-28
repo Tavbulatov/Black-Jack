@@ -26,100 +26,105 @@ class Controller
   CARDS = { '2+' => 2, '3+' => 3, '4+' => 4, '5+' => 5, '6+' => 6, '7+' => 7, '8+' => 8, '9+' => 9, '10+' => 10,
             'K+' => 10, 'Q+' => 10, 'J+' => 10, 'A+' => 1, '2<3' => 2, '3<3' => 3, '4<3' => 4, '5<3' => 5, '6<3' => 6,
             '7<3' => 7, '8<3' => 8, '9<3' => 9, '10<3' => 10, 'K<3' => 10, 'Q<3' => 10, 'J<3' => 10, 'A<3' => 1,
-             '2<>' => 2, '3<>' => 3, '4<>' => 4, '5<>' => 5, '6<>' => 6, '7<>' => 7, '8<>' => 8, '9<>' => 9, '10<>' => 10,
-              'K<>' => 10, 'Q<>' => 10, 'J<>' => 10, 'A<>' => 1, '2^' => 2, '3^' => 3, '4^' => 4, '5^' => 5, '6^' => 6,
-               '7^' => 7, '8^' => 8, '9^' => 9, '10^' => 10, 'K^' => 10, 'Q^' => 10, 'J^' => 10, 'A^' => 1
+            '2<>' => 2, '3<>' => 3, '4<>' => 4, '5<>' => 5, '6<>' => 6, '7<>' => 7, '8<>' => 8, '9<>' => 9, '10<>' => 10,
+            'K<>' => 10, 'Q<>' => 10, 'J<>' => 10, 'A<>' => 1, '2^' => 2, '3^' => 3, '4^' => 4, '5^' => 5, '6^' => 6,
+            '7^' => 7, '8^' => 8, '9^' => 9, '10^' => 10, 'K^' => 10, 'Q^' => 10, 'J^' => 10, 'A^' => 1
           }
 
   def initialize(name)
     @ante = 0
     @player = Player.new(name)
-    @diller = Diller.new
+    @dealer = Dealer.new
   end
 
   def correct
-    CARDS['A+'] = 11 if @player.poits <= 10 && @diller.poits <= 10
-    CARDS['A<>'] = 11 if @player.poits <= 10 && @diller.poits <= 10
-    CARDS['A<3'] = 11 if @player.poits <= 10 && @diller.poits <= 10
-    CARDS['A^'] = 11 if @player.poits <= 10 && @diller.poits <= 10
+    CARDS['A+'] = 11 if @player.poits <= 10 && @dealer.poits <= 10
+    CARDS['A<>'] = 11 if @player.poits <= 10 && @dealer.poits <= 10
+    CARDS['A<3'] = 11 if @player.poits <= 10 && @dealer.poits <= 10
+    CARDS['A^'] = 11 if @player.poits <= 10 && @dealer.poits <= 10
   end
 
   def start_game
+    reset
     @ante = 20
     @player.random_cards
-    @diller.random_cards
+    @dealer.random_cards
     @player.wager_money
-    @diller.wager_money
+    @dealer.wager_money
+    @player.cards_hands
+    puts '------------------'
+    @dealer.cards_hands
 
     loop do
-      puts '=================='
-      puts 'КАРТЫ ИГРОКА'
-      @player.cards_hands
-      puts 'КАРТЫ ДИЛЛЕРА'
-      @diller.cards_hands
       puts 'ВЫБЕРИТЕ ХОД: 1-Пропустить, 2-Добавить карту, 3-Открыть карты'
       choise = gets.chomp.downcase.to_s
       case choise
       when '1'
         add_card
+        @player.cards_hands
+        @dealer.cards_hands
       when '2'
+        puts '+ ## ИГРОК ВЗЯЛ КАРТУ ## + '
         @player.random_cards(1)
         add_card if @player.poits <= 21
       when '3'
         count_results
       when 'да'
-        reset
         start_game
       when 'нет'
         break
       end
       correct
 
-      if @player.rand_cards.flatten.size == 3 && @diller.rand_cards.flatten.size == 3
+      if @player.rand_cards.flatten.size == 3 && @dealer.rand_cards.flatten.size == 3
         count_results
       elsif @player.poits > 21
-        puts 'ИГРОК ПРОИГРАЛ!'
+        puts '+ ## ИГРОК ПРОИГРАЛ ## +'
         show_cards
-      elsif @diller.poits > 21
-        puts 'ДИЛЛЕР ПРОИГРАЛ!'
+      elsif @dealer.poits > 21
+        puts '+ ## ДИЛЛЕР ПРОИГРАЛ ## +'
         show_cards
       end
     end
   end
 
   def count_results
-    if @player.poits == @diller.poits
-      puts 'НИЧЬЯ!'
+    if @player.poits == @dealer.poits
+      puts '+ ## НИЧЬЯ ## +'
       show_cards
       reset
-    elsif @player.poits > @diller.poits && @player.poits <= 21
-      puts 'ИГРОК ВЫИГРАЛ!'
+    elsif @player.poits > @dealer.poits && @player.poits <= 21
+      puts '=================='
+      puts '+ ## ИГРОК ВЫИГРАЛ ## +'
       show_cards
-    elsif @diller.poits > @player.poits && @diller.poits <= 21
-      puts 'ДИЛЛЕР ВЫИГРАЛ!'
+    elsif @dealer.poits > @player.poits && @dealer.poits <= 21
+      puts '=================='
+      puts '+ ## ДИЛЛЕР ВЫИГРАЛ ## +'
       show_cards
     end
   end
 
   def show_cards
-    puts '=================='
-    puts 'КАРТЫ ИГРОКА'
     @player.cards_hands
-    @diller.open_cards
-    puts 'ХОТИТЕ СЫГРАТЬ ЕЩЕ? ДА/НЕТ'
+    puts '------------------'
+    @dealer.open_cards
+    puts '+ ## ХОТИТЕ СЫГРАТЬ ЕЩЕ? ДА/НЕТ ## +'
   end
 
   def add_card
-    @diller.random_cards(1) if @diller.poits < 17
+    puts '+ ## ДИЛЛЕР ВЗЯЛ КАРТУ ## +' if @dealer.poits < 17
+    puts '+ ## ДИЛЛЕР ПРОПУСТИЛ ХОД ## +' if @dealer.poits > 17
+    puts '+ ## ХОД ПЕРЕХОДИТ К ИГРОКУ ## +'
+    @dealer.random_cards(1) if @dealer.poits < 17
   end
 
   def reset
     @ante = 0
     @player.random_cards
-    @diller.random_cards
+    @dealer.random_cards
     @player.return_money
-    @diller.return_money
+    @dealer.return_money
     @player.rand_cards.clear
-    @diller.rand_cards.clear
+    @dealer.rand_cards.clear
   end
 end
