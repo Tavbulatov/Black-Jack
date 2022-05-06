@@ -1,40 +1,54 @@
 # frozen_string_literal: true
 
-class Player < Controller
-  attr_accessor :name, :bank, :rand_cards, :poits
+class Player
+  attr_accessor :name, :bank, :rand_cards, :poits, :purse
+
+  ACES = ['A♦', 'A♣', 'A♠', 'A♥'].freeze
 
   def initialize(name)
     @name = name
-    @bank = 100
+    @purse = 100
     @rand_cards = []
     @poits = 0
   end
 
-  def random_cards(number = 2)
-    if @rand_cards.size < 2
-      @rand_cards << CARDS.keys.sample(number)
-      @poits = 0
-      @rand_cards.flatten.each do |card|
-      @poits += CARDS[card]
-    end
+  def add_cards(card)
+    if @rand_cards.flatten.size < 3
+      @rand_cards << card
+      change_ace_value
+      count_points
+      puts '+ ## ХОД ИГРОКА ## +' if card.size == 2
+      puts '+ ## ИГРОК ВЗЯЛ КАРТУ, ТЕПЕРЬ ХОДИТ ДИЛЛЕР ## +' if card.size == 1
     else
-      puts 'БОЛЬШЕ НЕЛЬЗЯ!'
+      puts '+ ## У ИГРОКА УЖЕ ЕСТЬ ТРИ КАРТЫ ## +'
     end
+  end
+
+  def change_ace_value
+    @rand_cards.flatten.each do |card|
+      ACES.select do |ace|
+        card.value = 1 if @poits >= 10 && card.suit.include?(ace)
+      end
+    end
+  end
+
+  def count_points
+    @poits = 0
+    @rand_cards.flatten.each { |card| @poits += card.value }
   end
 
   def cards_hands
-    puts '=================='
     puts 'КАРТЫ ИГРОКА'
-    @rand_cards.flatten.each { |card| print card }
+    @rand_cards.flatten.each { |card| print card.suit }
     puts
-    puts "ОЧКИ: #{@poits}"
+    puts "ОЧКИ: #{@poits} БАНК: #{@purse}"
   end
 
   def return_money
-    @bank += 10
+    @purse += 10
   end
 
   def wager_money
-    @bank -= 10
+    @purse -= 10
   end
 end
