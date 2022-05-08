@@ -33,47 +33,48 @@ class Interface
       balance_check
       @game.new_game
       @game.start_game
+      puts '+ ## ХОДИТ ИГРОК ## +'
     when 'N'
       exit
     end
   end
 
   def add_one_card_player
-    if @game.player.rand_cards.flatten.size == 3
+    if player_cards_size == 3
       puts 'У ИГРОКА УЖЕ ЕСТЬ ТРИ КАРТЫ'
     else
       @game.add_cards(@game.player)
-      puts '+ ## ХОД ПЕРЕХОДИТ ДИЛЛЕРУ ## +' if @game.player.poits < 21
+      puts '+ ## ХОД ПЕРЕХОДИТ ДИЛЛЕРУ ## +' if player_poits < 21
     end
   end
 
   def add_one_card_dealer
-    if @game.dealer.rand_cards.flatten.size == 3
+    if dealer_cards_size == 3
       puts 'У ДИЛЛЕРА УЖЕ ЕСТЬ ТРИ КАРТЫ'
-    elsif @game.dealer.poits > 17
+    elsif dealer_poits > 17
       puts '+ ## ДИЛЛЕР ПРОПУСТИЛ ХОД ## +'
       puts '+ ## ХОД ПЕРЕХОДИТ К ИГРОКУ ## +'
     else
       @game.add_cards(@game.dealer)
       puts '+ ## ДИЛЛЕР ВЗЯЛ ОДНУ КАРТУ ## +'
       puts
-      puts '+ ## ХОД ПЕРЕХОДИТ К ИГРОКУ ## +'
+      puts '+ ## ХОД ПЕРЕХОДИТ К ИГРОКУ ## +' if dealer_poits <= 21
     end
   end
 
 
   def automatic_check
-    if @game.dealer.poits > 21
+    if dealer_poits > 21
       puts '+ ## ДИЛЛЕР ПРОИГРАЛ ## +'
       @ante = 0
       @game.player.purse += 20
       message
-    elsif @game.player.poits > 21
+    elsif player_poits > 21
       puts '+ ## ИГРОК ПРОИГРАЛ ## +'
       @ante = 0
       @game.dealer.purse += 20
       message
-    elsif @game.player.rand_cards.flatten.size == 3 && @game.dealer.rand_cards.flatten.size == 3
+    elsif player_cards_size == 3 && dealer_cards_size == 3
       count_results
       message
     end
@@ -87,10 +88,17 @@ class Interface
     @game.player.poits
   end
 
+  def player_cards_size
+    @game.player.rand_cards.flatten.size
+  end
+
+  def dealer_cards_size
+    @game.dealer.rand_cards.flatten.size
+  end
+
   def count_results
     @game.ante = 0
     puts '+ ## ПОДВЕДЕНИЕ ИТОГОВ ## +'
-    result = @game.player.poits - @game.dealer.poits
 
     if dealer_poits == player_poits
       puts '+ ## НИЧЬЯ ## +'
@@ -100,7 +108,7 @@ class Interface
       @game.player.purse += 20
       puts '========================'
       puts '+ ## ИГРОК ВЫИГРАЛ ## +'
-    elsif dealer_poits >
+    elsif dealer_poits > player_poits && dealer_poits <= 21
       @game.dealer.purse += 20
       puts '========================'
       puts '+ ## ДИЛЛЕР ВЫИГРАЛ ## +'
@@ -108,14 +116,14 @@ class Interface
   end
 
   def dealer_cards_poits
-    puts "КАРТЫ ДИЛЛЕРА | ОЧКИ: #{@game.dealer.poits} | БАНК: #{@game.dealer.purse}"
-    puts '*' * @game.dealer.rand_cards.flatten.size if @game.finish == false
+    puts "КАРТЫ ДИЛЛЕРА | ОЧКИ: #{dealer_poits} | БАНК: #{@game.dealer.purse}"
+    puts '*' * dealer_cards_size if @game.finish == false
     @game.dealer.rand_cards.flatten.each { |card| print card.rank_suit } if @game.finish == true
     puts
   end
 
   def player_cards_poits
-    puts "КАРТЫ ИГРОКА  | ОЧКИ: #{@game.player.poits} | БАНК: #{@game.player.purse}"
+    puts "КАРТЫ ИГРОКА  | ОЧКИ: #{player_poits} | БАНК: #{@game.player.purse}"
     @game.player.rand_cards.flatten.each { |card| print card.rank_suit }
     puts
   end
