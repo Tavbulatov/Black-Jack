@@ -13,21 +13,15 @@ class Player
   end
 
   def add_cards(card)
-    if @rand_cards.flatten.size < 3
-      @rand_cards << card
-      change_ace_value
-      count_points
-      puts '+ ## ХОД ИГРОКА ## +' if card.size == 2
-      puts '+ ## ИГРОК ВЗЯЛ КАРТУ, ТЕПЕРЬ ХОДИТ ДИЛЛЕР ## +' if card.size == 1
-    else
-      puts '+ ## У ИГРОКА УЖЕ ЕСТЬ ТРИ КАРТЫ ## +'
-    end
+    @rand_cards << card
+    change_ace_value
+    count_points
   end
 
   def change_ace_value
     @rand_cards.flatten.each do |card|
       ACES.select do |ace|
-        card.value = 1 if @poits >= 10 && card.suit.include?(ace)
+        card.value = 1 if @poits > 10 && card.rank_suit.include?(ace)
       end
     end
   end
@@ -35,13 +29,6 @@ class Player
   def count_points
     @poits = 0
     @rand_cards.flatten.each { |card| @poits += card.value }
-  end
-
-  def cards_hands
-    puts 'КАРТЫ ИГРОКА'
-    @rand_cards.flatten.each { |card| print card.suit }
-    puts
-    puts "ОЧКИ: #{@poits} БАНК: #{@purse}"
   end
 
   def return_money

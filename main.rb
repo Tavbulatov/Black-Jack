@@ -1,13 +1,18 @@
 # frozen_string_literal: true
 
-require_relative 'controller'
+require_relative 'game'
 require_relative 'card'
 require_relative 'deck'
 require_relative 'player'
 require_relative 'dealer'
 require_relative 'interface'
-# @controller = Controller.new 'as'
-puts 'Введите имя'
+
+class Blackjack
+  def initialize(name)
+    @interface = Interface.new(Game.new(name))
+    @interface.start_game
+  end
+end
+puts 'Как вас зовут?'
 name = gets.strip.capitalize
-@interface = Interface.new(name)
-@interface.start_game
+Blackjack.new(name)
