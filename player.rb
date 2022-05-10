@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
 class Player
-  attr_accessor :name, :bank, :rand_cards, :poits, :purse
+  attr_reader :name, :bank, :rand_cards, :purse
+  attr_accessor :poits
 
   ACES = ['A♦', 'A♣', 'A♠', 'A♥'].freeze
 
-  def initialize(name)
+  def initialize(name = 'ВИТАЛИК КАТОЛИК')
     @name = name
     @purse = 100
     @rand_cards = []
@@ -33,6 +34,10 @@ class Player
 
   def return_money
     @purse += 10
+  end
+
+  def twenty_money
+    @purse += 20
   end
 
   def wager_money

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Interface
-  attr_accessor :game
+  attr_reader :game
 
   def initialize(name)
     @game = name
@@ -9,75 +9,109 @@ class Interface
 
   def start_game
     @game.start_game
-    puts '+ ## ХОДИТ ИГРОК ## +'
+    puts '        _______NEW GAME______'
+    puts '        + ## ХОДИТ ИГРОК ## +'
+    puts '|===================================|'
+    show_cards_and_bank
     loop do
       add_cards_player_and_dealer
     end
   end
 
+  private
+
   def add_cards_player_and_dealer
-    automatic_check
-    show_cards
-    message if @game.finish == true
+    message(@game.automatic_check)
     puts
     puts 'ВЫБЕРИТЕ ХОД: 1-Пропустить, 2-Добавить карту, 3-Открыть карты'
     case gets.chomp.upcase.to_s
     when '1'
-      add_one_card_dealer
+      message(@game.add_one_card_dealer)
+      show_cards_and_bank
     when '2'
-      add_one_card_player
+      message(@game.add_one_card_player)
+      show_cards_and_bank
     when '3'
-      @game.finish = true
-      count_results
+      result = @game.count_results
+      message(result)
     when 'Y'
-      balance_check
+      message(@game.balance_check)
       @game.new_game
-      @game.start_game
-      puts '+ ## ХОДИТ ИГРОК ## +'
+      start_game
     when 'N'
       exit
     end
   end
 
-  def add_one_card_player
-    if player_cards_size == 3
-      puts 'У ИГРОКА УЖЕ ЕСТЬ ТРИ КАРТЫ'
-    else
-      @game.add_cards(@game.player)
-      puts '+ ## ХОД ПЕРЕХОДИТ ДИЛЛЕРУ ## +' if player_poits < 21
-    end
-  end
-
-  def add_one_card_dealer
-    if dealer_cards_size == 3
-      puts 'У ДИЛЛЕРА УЖЕ ЕСТЬ ТРИ КАРТЫ'
-    elsif dealer_poits > 17
+  def message(command)
+    case command
+    when :player_three_cards
+      puts '+ ## У ИГРОКА ТРИ КАРТЫ ## +'
+    when :dealer_move
+      puts '+ ## ХОД ПЕРЕХОДИТ ДИЛЛЕРУ ## +'
+    when :dealer_three_cards
+      puts '+ ## У ДИЛЛЕРА ТРИ КАРТЫ ## +'
+    when :dealer_skip_move
       puts '+ ## ДИЛЛЕР ПРОПУСТИЛ ХОД ## +'
-      puts '+ ## ХОД ПЕРЕХОДИТ К ИГРОКУ ## +'
-    else
-      @game.add_cards(@game.dealer)
+    when :dealer_add_one_card
       puts '+ ## ДИЛЛЕР ВЗЯЛ ОДНУ КАРТУ ## +'
-      puts
-      puts '+ ## ХОД ПЕРЕХОДИТ К ИГРОКУ ## +' if dealer_poits <= 21
+    when :three_cards
+      result = @game.count_results
+      message(result)
+    when :draw
+      puts '___________________________________________________'
+      puts '           + ## ПОДВЕДЕНИЕ ИТОГОВ ## +'
+      puts '|=================================================|'
+      puts '___________________________________________________'
+      puts '           |-----+ ## НИЧЬЯ ## +-----|'
+      puts '___________________________________________________'
+      open_cards
+    when :player_win
+      puts '___________________________________________________'
+      puts '            + ## ПОДВЕДЕНИЕ ИТОГОВ ## +'
+      puts '|=================================================|'
+      puts '__________________________________________________'
+      puts '|       |-----+ ## ИГРОК ВЫИГРАЛ ## +-----|       |'
+      puts '|_________________________________________________|'
+      open_cards
+    when :dealer_win
+      puts '___________________________________________________'
+      puts '            + ## ПОДВЕДЕНИЕ ИТОГОВ ## +'
+      puts '|=================================================|'
+      puts '___________________________________________________'
+      puts '|       |----+ ## ДИЛЛЕР ВЫИГРАЛ ## +-----|       |'
+      puts '|_________________________________________________|'
+      open_cards
+    when :dealer_purse_zero
+      puts '+ ## У ДИЛЛЕРА ЗАКОНЧИЛИСЬ ДЕНЬГИ ## +'
+      exit
+    when :player_purse_zero
+      puts '+ ## У ИГРОКА ЗАКОНЧИЛИСЬ ДЕНЬГИ ## +'
+      exit
     end
   end
 
+  def dealer_open_cards
+    puts "КАРТЫ ДИЛЛЕРА | ОЧКИ: #{dealer_poits} | БАНК: #{@game.dealer.purse}"
+    @game.dealer.rand_cards.flatten.each { |card| print card.rank_suit }
+    puts
+  end
 
-  def automatic_check
-    if dealer_poits > 21
-      puts '+ ## ДИЛЛЕР ПРОИГРАЛ ## +'
-      @ante = 0
-      @game.player.purse += 20
-      message
-    elsif player_poits > 21
-      puts '+ ## ИГРОК ПРОИГРАЛ ## +'
-      @ante = 0
-      @game.dealer.purse += 20
-      message
-    elsif player_cards_size == 3 && dealer_cards_size == 3
-      count_results
-      message
-    end
+  def dealer_cards_poits
+    puts "КАРТЫ ДИЛЛЕРА | ОЧКИ: #{dealer_poits} | БАНК: #{@game.dealer.purse}"
+    puts '*' * dealer_cards_size
+    puts
+  end
+
+  def player_cards_poits
+    puts "КАРТЫ ИГРОКА  | ОЧКИ: #{player_poits} | БАНК: #{@game.player.purse}"
+    @game.player.rand_cards.flatten.each { |card| print card.rank_suit }
+    puts
+  end
+
+  def message_new_game
+    puts '_________________________________________________'
+    puts '+ ## ЧТОБЫ СЫГРАТЬ ЕЩЕ ИЛИ ВЫЙТИ НАЖМИТЕ Y/N ## +'
   end
 
   def dealer_poits
@@ -96,53 +130,15 @@ class Interface
     @game.dealer.rand_cards.flatten.size
   end
 
-  def count_results
-    @game.ante = 0
-    puts '+ ## ПОДВЕДЕНИЕ ИТОГОВ ## +'
-
-    if dealer_poits == player_poits
-      puts '+ ## НИЧЬЯ ## +'
-      @game.player.return_money
-      @game.dealer.return_money
-    elsif player_poits > dealer_poits && player_poits <= 21
-      @game.player.purse += 20
-      puts '========================'
-      puts '+ ## ИГРОК ВЫИГРАЛ ## +'
-    elsif dealer_poits > player_poits && dealer_poits <= 21
-      @game.dealer.purse += 20
-      puts '========================'
-      puts '+ ## ДИЛЛЕР ВЫИГРАЛ ## +'
-    end
+  def open_cards
+    puts "$$---БАНК #{@game.bank.bank}---$$"
+    player_cards_poits
+    dealer_open_cards
+    message_new_game
   end
 
-  def dealer_cards_poits
-    puts "КАРТЫ ДИЛЛЕРА | ОЧКИ: #{dealer_poits} | БАНК: #{@game.dealer.purse}"
-    puts '*' * dealer_cards_size if @game.finish == false
-    @game.dealer.rand_cards.flatten.each { |card| print card.rank_suit } if @game.finish == true
-    puts
-  end
-
-  def player_cards_poits
-    puts "КАРТЫ ИГРОКА  | ОЧКИ: #{player_poits} | БАНК: #{@game.player.purse}"
-    @game.player.rand_cards.flatten.each { |card| print card.rank_suit }
-    puts
-  end
-
-  def message
-    puts '+ ## ЧТОБЫ СЫГРАТЬ ЕЩЕ ИЛИ ВЫЙТИ НАЖМИТЕ Y/N ## +'
-  end
-
-  def balance_check
-    if @game.dealer.purse.zero?
-      puts '+ ## У ДИЛЛЕРА ЗАКОНЧИЛИСЬ ДЕНЬГИ ## +'
-      exit
-    elsif @game.player.purse.zero?
-      puts '+ ## У ИГРОКА ЗАКОНЧИЛИСЬ ДЕНЬГИ ## +'
-      exit
-    end
-  end
-
-  def show_cards
+  def show_cards_and_bank
+    puts "$$---БАНК #{@game.bank.bank}---$$"
     player_cards_poits
     dealer_cards_poits
   end
