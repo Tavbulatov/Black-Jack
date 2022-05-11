@@ -80,12 +80,8 @@ class Game
   def balance_check
     if @dealer.purse.zero?
       return :dealer_purse_zero
-      sleep(3)
-      exit
     elsif @player.purse.zero?
       return :player_purse_zero
-      sleep(3)
-      exit
     end
   end
 
