@@ -9,14 +9,10 @@ class Deck
 
   def generate_card
     Card::SUIT.each do |suit|
+      @cards.shuffle!
       Card::RANK_VALUE.each do |rank, value|
-        @cards << Card.new(rank + suit, value)
-        @cards.shuffle!
+        @cards << Card.new(rank, suit, value)
       end
     end
-  end
-
-  def delete_card(card)
-    @cards.delete_at(card)
   end
 end

@@ -4,7 +4,7 @@ class Interface
   attr_reader :game
 
   def initialize(name)
-    @game = name
+    @game = Game.new(name)
   end
 
   def start_game
@@ -12,34 +12,60 @@ class Interface
     puts '        _______NEW GAME______'
     puts '        + ## ХОДИТ ИГРОК ## +'
     puts '|===================================|'
-    show_cards_and_bank
-    loop do
-      add_cards_player_and_dealer
-    end
+    show_cards_bank_menu
+    add_card_player_and_dealer
   end
 
   private
 
-  def add_cards_player_and_dealer
-    message(@game.automatic_check)
-    puts
-    puts 'ВЫБЕРИТЕ ХОД: 1-Пропустить, 2-Добавить карту, 3-Открыть карты'
+  def add_card_player_and_dealer
+    result = @game.automatic_check
+    @game.awarding_prize(result)
+    message_result(result)
+
     case gets.chomp.upcase.to_s
     when '1'
       message(@game.add_one_card_dealer)
-      show_cards_and_bank
+      show_cards_bank_menu
+      add_card_player_and_dealer
     when '2'
       message(@game.add_one_card_player)
-      show_cards_and_bank
-    when '3'
+      message(@game.add_one_card_dealer) if @game.player.poits < 21 # Чтобы когда у игрока очки > 21 диллер не взял карту,
+      show_cards_bank_menu                   # так как @game.automatic_check - чекает игру на превышение очков у игрока,
+      add_card_player_and_dealer             # а сам метод(он завернут в метод)вызывается после взятия игроками карт
+    when '3'                                 # получается игра должна была закончится, а диллер взял карту.
       result = @game.count_results
-      message(result)
-    when 'Y'
-      message(@game.balance_check)
-      @game.new_game
-      start_game
-    when 'N'
-      exit
+      @game.awarding_prize(result) #подготовка призов так скажем
+      message_result(result) # оглашение результатов с призами уже
+    end
+  end
+
+  def message_result(command)
+    case command
+    when :nil
+      puts '___________________________________________________'
+      puts '           + ## ПОДВЕДЕНИЕ ИТОГОВ ## +'
+      puts '|=================================================|'
+      puts '___________________________________________________'
+      puts '           |-----+ ## НИЧЬЯ ## +-----|'
+      puts '___________________________________________________'
+      open_cards
+    when @game.player
+      puts '___________________________________________________'
+      puts '            + ## ПОДВЕДЕНИЕ ИТОГОВ ## +'
+      puts '|=================================================|'
+      puts '__________________________________________________'
+      puts '|       |-----+ ## ИГРОК ВЫИГРАЛ ## +-----|       |'
+      puts '|_________________________________________________|'
+      open_cards
+    when @game.dealer
+      puts '___________________________________________________'
+      puts '            + ## ПОДВЕДЕНИЕ ИТОГОВ ## +'
+      puts '|=================================================|'
+      puts '___________________________________________________'
+      puts '|       |----+ ## ДИЛЛЕР ВЫИГРАЛ ## +-----|       |'
+      puts '|_________________________________________________|'
+      open_cards
     end
   end
 
@@ -55,33 +81,6 @@ class Interface
       puts '+ ## ДИЛЛЕР ПРОПУСТИЛ ХОД ## +'
     when :dealer_add_one_card
       puts '+ ## ДИЛЛЕР ВЗЯЛ ОДНУ КАРТУ ## +'
-    when :three_cards
-      result = @game.count_results
-      message(result)
-    when :draw
-      puts '___________________________________________________'
-      puts '           + ## ПОДВЕДЕНИЕ ИТОГОВ ## +'
-      puts '|=================================================|'
-      puts '___________________________________________________'
-      puts '           |-----+ ## НИЧЬЯ ## +-----|'
-      puts '___________________________________________________'
-      open_cards
-    when :player_win
-      puts '___________________________________________________'
-      puts '            + ## ПОДВЕДЕНИЕ ИТОГОВ ## +'
-      puts '|=================================================|'
-      puts '__________________________________________________'
-      puts '|       |-----+ ## ИГРОК ВЫИГРАЛ ## +-----|       |'
-      puts '|_________________________________________________|'
-      open_cards
-    when :dealer_win
-      puts '___________________________________________________'
-      puts '            + ## ПОДВЕДЕНИЕ ИТОГОВ ## +'
-      puts '|=================================================|'
-      puts '___________________________________________________'
-      puts '|       |----+ ## ДИЛЛЕР ВЫИГРАЛ ## +-----|       |'
-      puts '|_________________________________________________|'
-      open_cards
     when :dealer_purse_zero
       puts '+ ## У ДИЛЛЕРА ЗАКОНЧИЛИСЬ ДЕНЬГИ ## +'
       exit
@@ -92,42 +91,34 @@ class Interface
   end
 
   def dealer_open_cards
-    puts "КАРТЫ ДИЛЛЕРА | ОЧКИ: #{dealer_poits} | БАНК: #{@game.dealer.purse}"
-    @game.dealer.rand_cards.flatten.each { |card| print card.rank_suit }
+    puts "КАРТЫ ДИЛЛЕРА | ОЧКИ: #{@game.dealer.poits} | БАНК: #{@game.dealer.purse}"
+    @game.dealer.cards.flatten.each { |card| print card.rank + card.suit }
     puts
   end
 
   def dealer_cards_poits
-    puts "КАРТЫ ДИЛЛЕРА | ОЧКИ: #{dealer_poits} | БАНК: #{@game.dealer.purse}"
-    puts '*' * dealer_cards_size
+    puts "КАРТЫ ДИЛЛЕРА | ОЧКИ: ## | БАНК: #{@game.dealer.purse}"
+    puts '*' * @game.dealer.cards.flatten.size
     puts
   end
 
   def player_cards_poits
-    puts "КАРТЫ ИГРОКА  | ОЧКИ: #{player_poits} | БАНК: #{@game.player.purse}"
-    @game.player.rand_cards.flatten.each { |card| print card.rank_suit }
+    puts "КАРТЫ #{@game.player.name} | ОЧКИ: #{@game.player.poits} | БАНК: #{@game.player.purse}"
+    @game.player.cards.flatten.each { |card| print card.rank + card.suit  }
     puts
   end
 
   def message_new_game
     puts '_________________________________________________'
     puts '+ ## ЧТОБЫ СЫГРАТЬ ЕЩЕ ИЛИ ВЫЙТИ НАЖМИТЕ Y/N ## +'
-  end
-
-  def dealer_poits
-    @game.dealer.poits
-  end
-
-  def player_poits
-    @game.player.poits
-  end
-
-  def player_cards_size
-    @game.player.rand_cards.flatten.size
-  end
-
-  def dealer_cards_size
-    @game.dealer.rand_cards.flatten.size
+    case gets.chomp.upcase.to_s
+    when 'Y'
+      message(@game.balance_check)
+      @game.new_game
+      start_game
+    when 'N'
+      exit
+    end
   end
 
   def open_cards
@@ -137,9 +128,11 @@ class Interface
     message_new_game
   end
 
-  def show_cards_and_bank
+  def  show_cards_bank_menu
     puts "$$---БАНК #{@game.bank.bank}---$$"
     player_cards_poits
     dealer_cards_poits
+    puts
+    puts 'ВЫБЕРИТЕ ХОД: 1-Пропустить, 2-Добавить карту, 3-Открыть карты'
   end
 end

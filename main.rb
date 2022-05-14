@@ -8,13 +8,14 @@ require_relative 'player'
 require_relative 'dealer'
 require_relative 'interface'
 
- class Blackjack
-   def initialize(name)
-     @interface = Interface.new(Game.new('name'))
-     @interface.start_game
-   end
- end
+class Blackjack
+  def initialize(name)
+    @interface = Interface.new(name)
+    @interface.start_game
+  end
+end
 
- puts 'Как вас зовут?'
- name = gets.strip.capitalize
- @b=Blackjack.new(name)
+puts 'Как вас зовут?'
+name = gets.strip.capitalize
+
+@blackjack=Blackjack.new(name)

@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 class Dealer < Player
-  attr_reader :poits, :purse, :rand_cards
+  attr_reader :poits, :purse, :cards
 
-  def initialize(name = 'Dealer')
+  def initialize(name = 'ДИЛЛЕР')
     super
   end
 end

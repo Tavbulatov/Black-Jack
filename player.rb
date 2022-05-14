@@ -1,35 +1,33 @@
 # frozen_string_literal: true
 
 class Player
-  attr_reader :name, :bank, :rand_cards, :purse
+  attr_reader :name, :bank, :cards, :purse
   attr_accessor :poits
 
-  ACES = ['A♦', 'A♣', 'A♠', 'A♥'].freeze
-
   def initialize(name = 'ВИТАЛИК КАТОЛИК')
-    @name = name
+    @name = name.upcase
     @purse = 100
-    @rand_cards = []
+    @cards = []
     @poits = 0
   end
 
-  def add_cards(card)
-    @rand_cards << card
+  def add_card(card)
+    @cards << card
     change_ace_value
     count_points
   end
 
   def change_ace_value
-    @rand_cards.flatten.each do |card|
-      ACES.select do |ace|
-        card.value = 1 if @poits > 10 && card.rank_suit.include?(ace)
+    @cards.flatten.each_with_index do |card, index|
+      if card.rank.include?('A') && @poits > 10 && index != 0 #так при взятии 2-го и 3-го туза
+        card.value = 1                                         #он значение 1-го туза не поменяет.
       end
     end
   end
 
   def count_points
     @poits = 0
-    @rand_cards.flatten.each { |card| @poits += card.value }
+    @cards.flatten.each { |card| @poits += card.value }
   end
 
   def return_money

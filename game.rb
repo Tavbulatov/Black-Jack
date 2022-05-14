@@ -9,13 +9,12 @@ class Game
     @dealer = Dealer.new
     @deck = Deck.new
     @deck.generate_card
-    @finish = false
   end
 
   def start_game
     2.times do
-      add_cards(@dealer)
-      add_cards(@player)
+      add_card(@dealer)
+      add_card(@player)
     end
 
     @player.wager_money
@@ -24,56 +23,50 @@ class Game
   end
 
   def new_game
-    @finish = false
     @deck.cards.clear
     @deck.generate_card
-    @dealer.rand_cards.clear
-    @player.rand_cards.clear
-    @dealer.poits = 0
-    @player.poits = 0
+    @dealer.cards.clear
+    @player.cards.clear
+    dealer_poits = 0
+    player_poits = 0
   end
 
-  def add_cards(choice, number = 1)
-    random = @deck.cards.sample(number)
-    choice.add_cards(random)
-    @deck.cards.each_with_index do |card, index|
-      random.select do |rand_card|
-        @deck.delete_card(index) if card.rank_suit == rand_card.rank_suit
-      end
-    end
+  def add_card(person)
+    person.add_card(@deck.cards.sample)
   end
 
   def count_results
-    @bank.refund if @finish == false
-    if dealer_poits == player_poits
-      @player.return_money if @finish == false
-      @dealer.return_money if @finish == false
-      @finish = true
-      return :draw
-    elsif player_poits > dealer_poits && player_poits <= 21
-      @player.twenty_money if @finish == false
-      @finish = true
-      return :player_win
-    elsif dealer_poits > player_poits && dealer_poits <= 21
-      @dealer.twenty_money if @finish == false
-      @finish = true
-      return :dealer_win
+    if dealer_poits > 21
+      @player
+    elsif dealer_poits == player_poits
+      :nil
+    elsif player_poits > dealer_poits
+      @player
+    elsif dealer_poits > player_poits && dealer_poits <= 21 #Оба превысить не могут,может только диллер и это станет понятно после
+      @dealer                                                     #после вскрытия карт
+    end                                                          #а когда игрок превысит 21, то automatic_check подведет итоги
+  end
+
+  def awarding_prize(player) #вручение приза
+    case player
+    when @player
+      @bank.refund
+      @player.twenty_money
+    when @dealer
+      @bank.refund
+      @dealer.twenty_money
+    when :nil
+      @bank.refund
+      @player.return_money
+      @dealer.return_money
     end
   end
 
-  def automatic_check
-    if dealer_poits > 21
-      @bank.refund if @finish == false
-      @player.twenty_money if @finish == false
-      @finish = true
-      return :player_win
-    elsif player_poits > 21
-      @bank.refund if @finish == false
-      @dealer.twenty_money if @finish == false
-      @finish = true
-      return :dealer_win
+  def automatic_check    # чекает игру после взятия карты
+    if player_poits > 21 # автоматом подводит итоги
+      @dealer
     elsif player_cards_size == 3 && dealer_cards_size == 3
-      return :three_cards
+      count_results
     end
   end
 
@@ -89,8 +82,8 @@ class Game
     if player_cards_size == 3
       return :player_three_cards
     else
-      add_cards(@player)
-      return :dealer_move if player_poits <= 21
+      add_card(@player)
+      return :dealer_move
     end
   end
 
@@ -100,8 +93,8 @@ class Game
     elsif  dealer_poits >= 17
       return :dealer_skip_move
     else
-      add_cards(@dealer) if player_poits <= 21
-      return :dealer_add_one_card if player_poits <= 21
+      add_card(@dealer)
+      return :dealer_add_one_card
     end
   end
 
@@ -114,10 +107,10 @@ class Game
   end
 
   def player_cards_size
-    @player.rand_cards.flatten.size
+    @player.cards.flatten.size
   end
 
   def dealer_cards_size
-    @dealer.rand_cards.flatten.size
+    @dealer.cards.flatten.size
   end
 end
