@@ -27,90 +27,69 @@ class Game
     @deck.generate_card
     @dealer.cards.clear
     @player.cards.clear
-    dealer_poits = 0
-    player_poits = 0
+    @dealer.points = 0
+    @player.points = 0
   end
 
-  def add_card(person)
-    person.add_card(@deck.cards.sample)
+  def add_card(player)
+    player.add_card(@deck.cards.sample)
   end
 
   def count_results
-    if dealer_poits > 21
-      @player
-    elsif dealer_poits == player_poits
+    if (@player.points == @dealer.points) || (score_limit?(@player) && score_limit?(@dealer))
       :nil
-    elsif player_poits > dealer_poits
+    elsif score_limit?(@player)
+      @dealer
+    elsif score_limit?(@dealer)
       @player
-    elsif dealer_poits > player_poits && dealer_poits <= 21 #Оба превысить не могут,может только диллер и это станет понятно после
-      @dealer                                                     #после вскрытия карт
-    end                                                          #а когда игрок превысит 21, то automatic_check подведет итоги
+    else
+      [@player, @dealer].max_by(&:points)
+    end
   end
 
-  def awarding_prize(player) #вручение приза
-    case player
-    when @player
-      @bank.refund
-      @player.twenty_money
-    when @dealer
-      @bank.refund
-      @dealer.twenty_money
-    when :nil
-      @bank.refund
+  def score_limit?(player)
+    player.points > 21
+  end
+
+  def awarding_prize(player)
+    if player == :nil
       @player.return_money
       @dealer.return_money
+    else
+      player.twenty_money
     end
+    @bank.refund
   end
 
-  def automatic_check    # чекает игру после взятия карты
-    if player_poits > 21 # автоматом подводит итоги
-      @dealer
-    elsif player_cards_size == 3 && dealer_cards_size == 3
-      count_results
-    end
+  def automatic_check
+    count_results if @player.cards.size == 3 && @dealer.cards.size == 3
   end
 
   def balance_check
     if @dealer.purse.zero?
-      return :dealer_purse_zero
+      :dealer_purse_zero
     elsif @player.purse.zero?
-      return :player_purse_zero
+      :player_purse_zero
     end
   end
 
   def add_one_card_player
-    if player_cards_size == 3
-      return :player_three_cards
+    if @player.cards.size == 3
+      :player_three_cards
     else
       add_card(@player)
-      return :dealer_move
+      :dealer_move
     end
   end
 
   def add_one_card_dealer
-    if dealer_cards_size == 3
-      return :dealer_three_cards
-    elsif  dealer_poits >= 17
-      return :dealer_skip_move
+    if @dealer.cards.size == 3
+      :dealer_three_cards
+    elsif @dealer.points >= 17
+      :dealer_skip_move
     else
       add_card(@dealer)
-      return :dealer_add_one_card
+      :dealer_add_one_card
     end
-  end
-
-  def dealer_poits
-    @dealer.poits
-  end
-
-  def player_poits
-    @player.poits
-  end
-
-  def player_cards_size
-    @player.cards.flatten.size
-  end
-
-  def dealer_cards_size
-    @dealer.cards.flatten.size
   end
 end

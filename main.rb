@@ -18,4 +18,4 @@ end
 puts 'Как вас зовут?'
 name = gets.strip.capitalize
 
-@blackjack=Blackjack.new(name)
+@blackjack = Blackjack.new(name)

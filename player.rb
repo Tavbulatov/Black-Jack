@@ -2,32 +2,25 @@
 
 class Player
   attr_reader :name, :bank, :cards, :purse
-  attr_accessor :poits
+  attr_accessor :points
 
   def initialize(name = 'ВИТАЛИК КАТОЛИК')
     @name = name.upcase
     @purse = 100
     @cards = []
-    @poits = 0
+    @points = 0
   end
 
   def add_card(card)
     @cards << card
-    change_ace_value
     count_points
   end
 
-  def change_ace_value
-    @cards.flatten.each_with_index do |card, index|
-      if card.rank.include?('A') && @poits > 10 && index != 0 #так при взятии 2-го и 3-го туза
-        card.value = 1                                         #он значение 1-го туза не поменяет.
-      end
-    end
-  end
-
   def count_points
-    @poits = 0
-    @cards.flatten.each { |card| @poits += card.value }
+    @points = @cards.sum(&:value)
+    @cards.select(&:ace?).each do |_card|
+      @points -= 10 if @points > 21
+    end
   end
 
   def return_money
