@@ -37,7 +37,7 @@ class Game
 
   def count_results
     if (@player.points == @dealer.points) || (score_limit?(@player) && score_limit?(@dealer))
-      :nil
+      :draw
     elsif score_limit?(@player)
       @dealer
     elsif score_limit?(@dealer)
@@ -52,7 +52,7 @@ class Game
   end
 
   def awarding_prize(player)
-    if player == :nil
+    if player == :draw
       @player.return_money
       @dealer.return_money
     else

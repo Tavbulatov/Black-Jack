@@ -13,24 +13,24 @@ class Interface
     puts '        + ## ХОДИТ ИГРОК ## +'
     puts '|===================================|'
     show_cards_bank_menu
-    add_card_player_and_dealer
+    add_players_cards
   end
 
   private
 
-  def add_card_player_and_dealer
+  def add_players_cards
     message_result(@game.automatic_check)
 
     case gets.chomp.to_i
     when 1
       message(@game.add_one_card_dealer)
       show_cards_bank_menu
-      add_card_player_and_dealer
+      add_players_cards
     when 2
       message(@game.add_one_card_player)
       message(@game.add_one_card_dealer)
       show_cards_bank_menu
-      add_card_player_and_dealer
+      add_players_cards
     when 3
       message_result(@game.count_results)
     end
@@ -38,7 +38,7 @@ class Interface
 
   def message_result(command)
     case command
-    when :nil
+    when :draw
       puts '___________________________________________________'
       puts '           + ## ПОДВЕДЕНИЕ ИТОГОВ ## +'
       puts '|=================================================|'
@@ -47,21 +47,12 @@ class Interface
       puts '___________________________________________________'
       @game.awarding_prize(command)
       open_cards
-    when @game.player
+    when @game.player, @game.dealer
       puts '___________________________________________________'
       puts '            + ## ПОДВЕДЕНИЕ ИТОГОВ ## +'
       puts '|=================================================|'
       puts '__________________________________________________'
-      puts '|       |-----+ ## ИГРОК ВЫИГРАЛ ## +-----|       |'
-      puts '|_________________________________________________|'
-      @game.awarding_prize(command)
-      open_cards
-    when @game.dealer
-      puts '___________________________________________________'
-      puts '            + ## ПОДВЕДЕНИЕ ИТОГОВ ## +'
-      puts '|=================================================|'
-      puts '___________________________________________________'
-      puts '|       |----+ ## ДИЛЛЕР ВЫИГРАЛ ## +-----|       |'
+      puts "        |-----+ ## #{command.name} ## +-----|     "
       puts '|_________________________________________________|'
       @game.awarding_prize(command)
       open_cards

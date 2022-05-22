@@ -4,7 +4,7 @@ class Player
   attr_reader :name, :bank, :cards, :purse
   attr_accessor :points
 
-  def initialize(name = 'ВИТАЛИК КАТОЛИК')
+  def initialize(name = 'ДИЛЛЕР')
     @name = name.upcase
     @purse = 100
     @cards = []
