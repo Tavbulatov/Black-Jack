@@ -118,7 +118,7 @@ class Interface
     message_new_game
   end
 
-  def  show_cards_bank_menu
+  def show_cards_bank_menu
     puts "$$---БАНК #{@game.bank.bank}---$$"
     player_cards_points
     dealer_cards_points
